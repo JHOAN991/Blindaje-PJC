@@ -22,9 +22,8 @@ def main():
     ejecutar_appsheet = st.sidebar.button("🔁 Ejecutar Appsheet.py")
 
     if ejecutar_appsheet:
-        st.sidebar.info("Ejecutando Appsheet.py...")
-        resultado = subprocess.run(["python", "scripts/Appsheet.py"], capture_output=True, text=True)
-        st.sidebar.text_area("Salida del script:", resultado.stdout + "\n" + resultado.stderr, height=300)
+        # Ejecutar el script sin mostrar salida en la app
+        subprocess.run(["python", "scripts/Appsheet.py"])
 
     # Menú lateral
     opcion = st.sidebar.selectbox(
