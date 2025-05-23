@@ -1,15 +1,13 @@
-import os
-import json
+import streamlit as st
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-service_account_info = json.loads(os.environ["GCP_SERVICE_ACCOUNT"])
+service_account_info = dict(st.secrets["gcp_service_account"])
 CREDS = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(CREDS)
-
 
 SPREADSHEET_ID = "1YTGCDwIuYNqZpt6qvdUSYSoK5vbPHShvf2b4qOnF-58"
 SHEET_ORIGEN = "TOTAL"
