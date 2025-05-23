@@ -10,3 +10,4 @@ openpyxl
 xlrd
 xlsxwriter
 requests
+gspread-dataframe
