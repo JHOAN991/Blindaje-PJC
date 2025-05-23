@@ -1,0 +1,12 @@
+streamlit
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+gspread
+google-auth
+openpyxl
+xlrd
+xlsxwriter
+requests
