@@ -1,4 +1,5 @@
 import gspread
+import streamlit as st
 import pandas as pd
 import os
 from google.oauth2.service_account import Credentials
@@ -6,9 +7,9 @@ from gspread_dataframe import get_as_dataframe
 
 # === CONFIGURACIÓN ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-CREDS = Credentials.from_service_account_file("credenciales.json", scopes=SCOPES)
+service_account_info = dict(st.secrets["gcp_service_account"])
+CREDS = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(CREDS)
-
 # === INGRESO DE IDS DESDE CONSOLA ===
 ids = []
 print("🔗 Ingresa los IDs de los documentos. Escribe '.' para terminar:")

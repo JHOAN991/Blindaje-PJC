@@ -1,14 +1,15 @@
 import pandas as pd
 import os
 import gspread
+import streamlit as st
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 
 # === CONFIGURACIÓN ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-CREDS = Credentials.from_service_account_file("credenciales.json", scopes=SCOPES)
+service_account_info = dict(st.secrets["gcp_service_account"])
+CREDS = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(CREDS)
-
 SPREADSHEET_ID = "1YTGCDwIuYNqZpt6qvdUSYSoK5vbPHShvf2b4qOnF-58"
 SHEET_NAME = "Base_Madre"
 
