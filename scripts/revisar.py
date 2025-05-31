@@ -48,12 +48,13 @@ COLUMNAS_DECIMALES = [
     "factura_tel_actual", "factura_total_vieja", "factura_total_nueva", "Cuenta", "SUSCRIPTOR"
 ]
 
-# Google Sheet ID
-SHEET_ID = "TU_ID_DE_HOJA_DE_CALCULO"  # <-- Reemplaza por el ID real
+SHEET_ID = "1YTGCDwIuYNqZpt6qvdUSYSoK5vbPHShvf2b4qOnF-58"
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+CREDS = Credentials.from_service_account_info(
+    dict(st.secrets["gcp_service_account"]), scopes=SCOPES
+)
+client = gspread.authorize(CREDS)
 
-# Autenticación de Google Sheets
-gc = gspread.service_account(filename='credentials.json')  # Asegúrate de tener este archivo
-client = gc
 
 # Función auxiliar: convertir columnas a texto limpio
 def convertir_a_texto(df):
