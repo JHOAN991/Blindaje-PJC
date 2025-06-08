@@ -1,16 +1,18 @@
-import subprocess
 import streamlit as st
 
 st.set_page_config(page_title="Panel de Procesos", layout="centered")
 
+# Módulos de la app
 from modules import Gestiones_de_hoy, interfaz_inicio
 from modules import panel_control
 from modules import Reporte
 from modules import reasignar_clientes
 from modules import revisar_streamlit
 
+# Funciones auxiliares
 from scripts.reasignacion import contar_total_gestiones, iniciar_credenciales
 from scripts.revisar import procesar_para_revision
+from scripts.Appsheet import ejecutar_actualizacion  # Importamos la función directamente
 
 def main():
     if "comenzar" not in st.session_state or not st.session_state.comenzar:
@@ -22,8 +24,16 @@ def main():
     ejecutar_appsheet = st.sidebar.button("🔁 Ejecutar Appsheet.py")
 
     if ejecutar_appsheet:
-        # Ejecutar el script sin mostrar salida en la app
-        subprocess.run(["python", "scripts/Appsheet.py"])
+        progreso = st.progress(0)
+        with st.spinner("Ejecutando sincronización con Appsheet..."):
+            def actualizar_progreso(valor):
+                progreso.progress(valor)
+
+            try:
+                ejecutar_actualizacion(actualizar_progreso)
+                st.success("✅ Sincronización completada correctamente.")
+            except Exception as e:
+                st.error(f"❌ Error al ejecutar Appsheet: {e}")
 
     # Menú lateral
     opcion = st.sidebar.selectbox(

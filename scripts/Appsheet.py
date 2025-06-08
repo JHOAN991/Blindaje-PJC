@@ -26,8 +26,6 @@ COLUMNAS_DECIMALES = [
     "factura_tel_actual", "factura_total_vieja", "factura_total_nueva"
 ]
 
-# === FUNCIONES ===
-
 def cargar_datos_hoja(nombre_hoja):
     try:
         ws = client.open_by_key(SPREADSHEET_ID).worksheet(nombre_hoja)
@@ -69,24 +67,32 @@ def formatear_decimales(df, columnas):
             )
     return df
 
-# === EJECUCIÓN PRINCIPAL ===
+# === FUNCIÓN EXPORTABLE ===
 
-def main():
+def ejecutar_actualizacion(progreso_callback=None):
+    if progreso_callback: progreso_callback(10)
     df_origen, _ = cargar_datos_hoja(SHEET_ORIGEN)
+
+    if progreso_callback: progreso_callback(30)
     df_destino, ws_destino = cargar_datos_hoja(SHEET_DESTINO)
 
     if df_origen.empty or df_destino.empty or ws_destino is None:
+        st.warning("No se pudieron cargar los datos.")
         return
 
+    if progreso_callback: progreso_callback(50)
     df_actualizado, total_actualizados = actualizar_base(df_destino, df_origen)
 
     if total_actualizados > 0:
+        if progreso_callback: progreso_callback(70)
         df_actualizado = formatear_decimales(df_actualizado, COLUMNAS_DECIMALES)
+
         try:
+            if progreso_callback: progreso_callback(90)
             ws_destino.clear()
             set_with_dataframe(ws_destino, df_actualizado, include_index=False)
         except Exception as e:
             st.error(f"Error al escribir en la hoja destino: {e}")
+            return
 
-if __name__ == "__main__":
-    main()
+    if progreso_callback: progreso_callback(100)
