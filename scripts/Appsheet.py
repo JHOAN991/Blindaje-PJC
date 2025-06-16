@@ -61,10 +61,13 @@ def actualizar_base(df_destino, df_origen):
 def formatear_decimales(df, columnas):
     for col in columnas:
         if col in df.columns:
-            df[col] = df[col].apply(lambda x: 
-                "{:.2f}".format(float(str(x).replace(",", "."))).replace(".", ",")
-                if str(x).replace(",", ".").replace(".", "").isdigit() else x
-            )
+            def limpiar_valor(x):
+                try:
+                    x_num = float(str(x).replace(",", ".").replace(" ", ""))
+                    return "{:.2f}".format(x_num).replace(".", ",")
+                except:
+                    return str(x)
+            df[col] = df[col].apply(limpiar_valor)
     return df
 
 # === FUNCIÓN EXPORTABLE ===

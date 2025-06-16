@@ -1,9 +1,9 @@
 import pandas as pd
 import os
 import gspread
-import streamlit as st
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
+import streamlit as st  # Solo necesario si ejecutas desde Streamlit
 
 # === CONFIGURACIÓN ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -22,7 +22,7 @@ columnas_deseadas = [
     "Ajuste Permanente CM", "Incremento + Impuesto", "SUSCRIPTOR", "Cuenta", "NOMBRE_CLIENTE",
     "CICLO", "Numero 1", "Numero 2", "Numero 3", "Numero 4", "Fijo 1", "Fijo 2", "Agente",
     "Fecha", "Hora", "Gestion", "Razon", "Comentario", "Incremento", "Mejor contacto",
-    "CEDULA", "INCREMEN TOTAL", "plan_tel_actual", "factura_tel_actual", "factura_total_vieja", "factura_total_nueva", "Subida"
+    "CEDULA", "INCREMEN TOTAL", "plan_tel_actual", "factura_tel_actual", "factura_total_vieja", "factura_total_nueva", "Subida", "comentario tytan"
 ]
 
 def asignar_agentes(df, agentes):
@@ -38,7 +38,7 @@ def asignar_agentes(df, agentes):
     df["Agente"] = [agente for agente, n in zip(agentes, asignaciones) for _ in range(n)]
     return df
 
-def actualizar_base_madre(agentes=[]):
+def ejecutar_carga(agentes=[]):
     os.makedirs(directorio_cargados, exist_ok=True)
 
     try:
@@ -83,8 +83,9 @@ def actualizar_base_madre(agentes=[]):
     except Exception as e:
         print(f"❌ Error al escribir en Google Sheets: {e}")
 
+# Para permitir uso desde terminal si es necesario
 if __name__ == "__main__":
     import sys
     agentes_str = sys.argv[1] if len(sys.argv) > 1 else ""
     agentes_lista = [a.strip() for a in agentes_str.split(",") if a.strip()]
-    actualizar_base_madre(agentes_lista)
+    ejecutar_carga(agentes_lista)

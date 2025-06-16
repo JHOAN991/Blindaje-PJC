@@ -1,15 +1,11 @@
-# panel_control.py
-import os
-import subprocess
 import streamlit as st
-from scripts import  Alimentar, subir_crm
+from scripts import Alimentar, subir_crm
+from scripts.CARGAR_MADRE import ejecutar_carga  # ✅ ahora usamos función directamente
 
 def mostrar_panel():
     st.title("📊 Panel de Control - Actualización de Base Madre")
     st.markdown("Este panel permite actualizar la Base_Madre con los registros más recientes desde la hoja TOTAL.")
     st.divider()
-
-
 
     st.markdown("### 🔄 Subir archivos o IDs para Alimentar")
     with st.expander("▶️ Opciones de carga"):
@@ -25,7 +21,7 @@ def mostrar_panel():
 
     agentes_disponibles = [
         "Michell  Escobar", "Luris Henriquez", "Nadeshka Castillo", "Alejandro Bonilla", "Julian Ramirez", "Emily Medina",
-        "Jhoan Medina", "Rosmery Umanzor", "John Florian", "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte","Veronica Zuñiga"
+        "Jhoan Medina", "Rosmery Umanzor", "John Florian", "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte", "Veronica Zuñiga"
     ]
 
     seleccion = st.multiselect("Selecciona uno o más agentes:", options=["Todos"] + agentes_disponibles, default=[])
@@ -39,10 +35,12 @@ def mostrar_panel():
 
     if st.button("📤 Ejecutar carga de Base_Madre (CARGAR_MADRE.py)"):
         if confirmar_agente and agentes_seleccionados:
-            with st.spinner(f"Ejecutando CARGAR_MADRE.py para agentes: {', '.join(agentes_seleccionados)}..."):
-                agentes_str = ",".join(agentes_seleccionados)
-                subprocess.run(["python", "scripts/CARGAR_MADRE.py", agentes_str])
-            st.success(f"✅ Base_Madre actualizada con registros distribuidos entre: {', '.join(agentes_seleccionados)}.")
+            with st.spinner(f"Ejecutando carga para agentes: {', '.join(agentes_seleccionados)}..."):
+                try:
+                    ejecutar_carga(agentes_seleccionados)
+                    st.success(f"✅ Base_Madre actualizada con registros distribuidos entre: {', '.join(agentes_seleccionados)}.")
+                except Exception as e:
+                    st.error(f"❌ Error al ejecutar carga: {e}")
         else:
             st.warning("⚠️ Debes seleccionar al menos un agente y confirmar antes de continuar.")
 
@@ -65,7 +63,6 @@ def mostrar_panel():
 def ejecutar_proceso_alimentar(google_ids_text, archivos_xlsx):
     ids_limpios = [x.strip() for x in google_ids_text.splitlines() if x.strip()]
 
-    # 🔍 Mostrar previsualización
     if archivos_xlsx:
         st.subheader("👀 Previsualización de archivos locales (.xlsx)")
         previews = Alimentar.cargar_archivos_locales(archivos_xlsx, preview=True)
@@ -73,7 +70,6 @@ def ejecutar_proceso_alimentar(google_ids_text, archivos_xlsx):
             st.markdown(f"**{nombre}**")
             st.dataframe(df_preview)
 
-    # Confirmar ejecución
     if st.button("✅ Confirmar y procesar archivos"):
         with st.spinner("Procesando carga de bases (Alimentar)..."):
             resultados = Alimentar.procesar_entradas(sheets_ids=ids_limpios, archivos_locales=archivos_xlsx)
