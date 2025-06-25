@@ -21,7 +21,9 @@ def mostrar_panel():
 
     agentes_disponibles = [
         "Michell  Escobar", "Luris Henriquez", "Nadeshka Castillo", "Alejandro Bonilla", "Julian Ramirez", "Emily Medina",
-        "Jhoan Medina", "Rosmery Umanzor", "John Florian", "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte", "Veronica Zuñiga"
+        "Jhoan Medina", "Kenet Santamaria", "Maryorie Gonzalez", "Anabel Gonzalez", 
+        "Jeyson Valencia", "Armando Quiel", "Rosmery Umanzor", "John Florian", 
+        "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte", "Veronica Zuñiga"
     ]
 
     seleccion = st.multiselect("Selecciona uno o más agentes:", options=["Todos"] + agentes_disponibles, default=[])

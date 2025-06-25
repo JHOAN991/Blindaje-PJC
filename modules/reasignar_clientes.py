@@ -14,7 +14,8 @@ AGENTES_REASIGNACION = [
     "Michell  Escobar", "Luris Henriquez", "Nadeshka Castillo",
     "Alejandro Bonilla", "Julian Ramirez", "Emily Medina", "Jhoan Medina",
     "Rosmery Umanzor", "John Florian", "Sugeidys Batista",
-    "Darineth Diaz", "Edivinia Duarte", "Veronica Zuñiga"
+    "Darineth Diaz", "Edivinia Duarte", "Veronica Zuñiga", "Armando Quiel", "Anabel Gonzalez", "Maryorie Gonzalez", 
+    "Jeyson Valencia", "Kenet Santamaria"
 ]
 
 def mostrar_reasignacion():
