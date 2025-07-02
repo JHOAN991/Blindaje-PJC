@@ -136,4 +136,4 @@ def procesar_entradas(sheets_ids=[], archivos_locales=[]):
     resultados_locales = cargar_archivos_locales(archivos_locales) if archivos_locales else []
     return resultados_locales
 
-from scripts.CARGAR_MADRE import ejecutar_carga
+from scripts.CARGAR_MADRE import actualizar_base_madre
