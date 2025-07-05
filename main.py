@@ -8,6 +8,7 @@ from modules import panel_control
 from modules import Reporte
 from modules import reasignar_clientes
 from modules import revisar_streamlit
+from modules import Quitarbase  # <-- Nuevo módulo
 
 # Funciones auxiliares
 from scripts.reasignacion import contar_total_gestiones, iniciar_credenciales
@@ -43,7 +44,8 @@ def main():
             "Informe de Gestiones",
             "Reporte por Fecha",
             "Reasignar Clientes",
-            "Revisión de Clientes"
+            "Revisión de Clientes",
+            "Quitar valores de la Base"  # <-- Nueva opción
         ]
     )
 
@@ -57,6 +59,8 @@ def main():
         reasignar_clientes.mostrar_reasignacion()
     elif opcion == "Revisión de Clientes":
         revisar_streamlit.mostrar_revision()
+    elif opcion == "Quitar valores de la Base":
+        Quitarbase.mostrar_quitarbase()  # <-- Llamada al nuevo módulo
 
 if __name__ == "__main__":
     main()

@@ -22,7 +22,7 @@ columnas_deseadas = [
     "Ajuste Permanente CM", "Incremento + Impuesto", "SUSCRIPTOR", "Cuenta", "NOMBRE_CLIENTE",
     "CICLO", "Numero 1", "Numero 2", "Numero 3", "Numero 4", "Fijo 1", "Fijo 2", "Agente",
     "Fecha", "Hora", "Gestion", "Razon", "Comentario", "Incremento", "Mejor contacto",
-    "CEDULA", "INCREMEN TOTAL", "plan_tel_actual", "factura_tel_actual", "factura_total_vieja", "factura_total_nueva", "Subida"
+    "CEDULA", "INCREMEN TOTAL", "plan_tel_actual", "factura_tel_actual", "factura_total_vieja", "factura_total_nueva", "Subida", "comentario tytan", "Revisado-Agente", "Gestion-Revision", "Fecha de revision"
 ]
 
 def asignar_agentes(df, agentes):
