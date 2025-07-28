@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from scripts import Alimentar, CARGAR_MADRE
+from scripts import Alimentar, CARGAR_MADRE, subir_crm
 from gspread_dataframe import get_as_dataframe
 
 # Configuración de agentes
@@ -180,7 +180,7 @@ def mostrar_seccion_CARGAR_MADRE():
             
             if st.button("🔼 Subir a TOTAL"):
                 with st.spinner(f"Subiendo {base_seleccionada} al CRM..."):
-                    success, mensaje = CARGAR_MADRE.subir_base_a_total(base_seleccionada)
+                    success, mensaje = subir_crm.subir_base_crm(base_seleccionada)
                     
                     if success:
                         st.success(mensaje)
