@@ -1,83 +1,196 @@
-# panel_control.py
-import os
-import subprocess
 import streamlit as st
-from scripts import  Alimentar, subir_crm
+import pandas as pd
+from scripts import Alimentar, CARGAR_MADRE
+from gspread_dataframe import get_as_dataframe
+
+# Configuración de agentes
+AGENTES_DISPONIBLES = [
+    "Michell Escobar", "Luris Henriquez", "Nadeshka Castillo", 
+    "Alejandro Bonilla", "Julian Ramirez", "Emily Medina",
+    "Jhoan Medina", "Rosmery Umanzor", "John Florian", 
+    "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte",
+    "Veronica Zuñiga"
+]
 
 def mostrar_panel():
-    st.title("📊 Panel de Control - Actualización de Base Madre")
-    st.markdown("Este panel permite actualizar la Base_Madre con los registros más recientes desde la hoja TOTAL.")
+    """Función principal que muestra el panel de control completo"""
+    st.set_page_config(layout="wide")
+    st.title("📊 Panel de Control - Gestión de Bases CRM")
+    
+    # Mostrar estado de bases
+    mostrar_estado_bases()
     st.divider()
+    
+    # Sección de carga de datos
+    mostrar_seccion_alimentar()
+    st.divider()
+    
+    # Sección de asignación de agentes
+    agentes_seleccionados = mostrar_seccion_agentes()
+    st.divider()
+    
+    # Sección de carga a Base Madre
+    mostrar_seccion_cargar_madre(agentes_seleccionados)
+    st.divider()
+    
+    # Sección de subida a CRM
+    mostrar_seccion_CARGAR_MADRE()
 
+def mostrar_estado_bases():
+    """Muestra el estado de las bases"""
+    st.markdown("### 🔍 Estado Actual de Bases")
+    
+    try:
+        # Obtener bases existentes en Base_Madre
+        bases_madre = CARGAR_MADRE.obtener_bases_existentes()
+        
+        # Obtener hojas en el documento de destino
+        hojas_destino = CARGAR_MADRE.obtener_hojas_destino()
+        
+        # Calcular bases faltantes
+        bases_faltantes = list(set(hojas_destino) - set(bases_madre))
+        
+        if bases_faltantes:
+            st.warning(f"⚠️ Hay {len(bases_faltantes)} bases pendientes por cargar a Base_Madre:")
+            for base in bases_faltantes:
+                st.write(f"- {base}")
+        else:
+            st.success("✅ Todas las bases están actualizadas en Base_Madre")
+            
+    except Exception as e:
+        st.error(f"Error al verificar estado de bases: {str(e)}")
 
-
-    st.markdown("### 🔄 Subir archivos o IDs para Alimentar")
-    with st.expander("▶️ Opciones de carga"):
+def mostrar_seccion_alimentar():
+    """Muestra la sección para cargar nuevos datos"""
+    st.markdown("### 🔄 Cargar Nuevos Datos")
+    
+    with st.expander("📤 Opciones de Carga", expanded=True):
         google_ids_text = st.text_area("IDs de Google Sheets (uno por línea)", height=100)
-        archivos_xlsx = st.file_uploader("Cargar archivos locales (.xlsx)", type=["xlsx"], accept_multiple_files=True)
+        archivos_xlsx = st.file_uploader("Subir archivos Excel/CSV", type=["xlsx", "csv"], accept_multiple_files=True)
 
-        if archivos_xlsx or google_ids_text.strip():
-            ejecutar_proceso_alimentar(google_ids_text, archivos_xlsx)
+        if st.button("✅ Procesar Datos"):
+            procesar_datos(google_ids_text, archivos_xlsx)
 
-    st.divider()
+def procesar_datos(google_ids_text, archivos_xlsx):
+    """Procesa los datos ingresados"""
+    ids_limpios = [x.strip() for x in google_ids_text.splitlines() if x.strip()]
+    
+    if not ids_limpios and not archivos_xlsx:
+        st.warning("⚠️ No hay datos para procesar")
+        return
+    
+    with st.spinner("Procesando datos..."):
+        # Mostrar previsualización
+        if archivos_xlsx:
+            st.subheader("👀 Vista Previa de Archivos")
+            for archivo in archivos_xlsx:
+                try:
+                    df = pd.read_csv(archivo) if archivo.name.endswith('.csv') else pd.read_excel(archivo)
+                    with st.expander(f"📄 {archivo.name} - {len(df)} registros"):
+                        st.dataframe(df.head(3))
+                except Exception as e:
+                    st.error(f"Error al leer {archivo.name}: {str(e)}")
+        
+        # Procesar todos los datos
+        resultados = Alimentar.procesar_entradas(
+            sheets_ids=ids_limpios,
+            archivos_locales=archivos_xlsx
+        )
+        
+        # Mostrar resultados
+        st.success("✅ Proceso completado")
+        for nombre, estado in resultados:
+            st.write(f"- {nombre}: {estado}")
 
-    st.markdown("### 👤 Asignar Agente(s) antes de subir a Base_Madre")
-
-    agentes_disponibles = [
-        "Michell  Escobar", "Luris Henriquez", "Nadeshka Castillo", "Alejandro Bonilla", "Julian Ramirez", "Emily Medina",
-        "Jhoan Medina", "Rosmery Umanzor", "John Florian", "Sugeidys Batista", "Darineth Diaz", "Edivinia Duarte","Veronica Zuñiga"
-    ]
-
-    seleccion = st.multiselect("Selecciona uno o más agentes:", options=["Todos"] + agentes_disponibles, default=[])
+def mostrar_seccion_agentes():
+    """Muestra la sección de selección de agentes"""
+    st.markdown("### 👥 Asignación de Agentes")
+    
+    seleccion = st.multiselect(
+        "Seleccionar agentes:",
+        options=["Todos"] + AGENTES_DISPONIBLES,
+        default=[]
+    )
 
     if "Todos" in seleccion:
-        agentes_seleccionados = agentes_disponibles
+        agentes_seleccionados = AGENTES_DISPONIBLES
     else:
         agentes_seleccionados = seleccion
+        
+    st.info(f"Agentes seleccionados: {', '.join(agentes_seleccionados) if agentes_seleccionados else 'Ninguno'}")
+    
+    return agentes_seleccionados
 
-    confirmar_agente = st.checkbox(f"Confirmo que quiero asignar los registros a: {', '.join(agentes_seleccionados) if agentes_seleccionados else 'Ninguno'}")
-
-    if st.button("📤 Ejecutar carga de Base_Madre (CARGAR_MADRE.py)"):
-        if confirmar_agente and agentes_seleccionados:
-            with st.spinner(f"Ejecutando CARGAR_MADRE.py para agentes: {', '.join(agentes_seleccionados)}..."):
-                agentes_str = ",".join(agentes_seleccionados)
-                subprocess.run(["python", "scripts/CARGAR_MADRE.py", agentes_str])
-            st.success(f"✅ Base_Madre actualizada con registros distribuidos entre: {', '.join(agentes_seleccionados)}.")
+def mostrar_seccion_cargar_madre(agentes_seleccionados):
+    """Muestra la sección para cargar datos a Base Madre"""
+    st.markdown("### 🏗️ Cargar a Base Madre")
+    
+    try:
+        # Obtener bases existentes y hojas destino
+        bases_madre = CARGAR_MADRE.obtener_bases_existentes()
+        hojas_destino = CARGAR_MADRE.obtener_hojas_destino()
+        bases_faltantes = list(set(hojas_destino) - set(bases_madre))
+        
+        if bases_faltantes:
+            base_seleccionada = st.selectbox(
+                "Seleccionar base para cargar:",
+                options=bases_faltantes
+            )
+            
+            confirmar = st.checkbox("Confirmar asignación de agentes")
+            
+            if st.button("🚀 Cargar a Base Madre"):
+                if not confirmar:
+                    st.warning("Debes confirmar la asignación de agentes")
+                    return
+                    
+                if not agentes_seleccionados:
+                    st.warning("Debes seleccionar al menos un agente")
+                    return
+                    
+                with st.spinner(f"Cargando {base_seleccionada} a Base Madre..."):
+                    success, mensaje = CARGAR_MADRE.cargar_base_a_madre(base_seleccionada)
+                    
+                    if success:
+                        st.success(mensaje)
+                        st.balloons()
+                    else:
+                        st.error(mensaje)
         else:
-            st.warning("⚠️ Debes seleccionar al menos un agente y confirmar antes de continuar.")
+            st.info("No hay bases pendientes por cargar a Base Madre")
+            
+    except Exception as e:
+        st.error(f"Error al cargar bases: {str(e)}")
 
-    st.divider()
+def mostrar_seccion_CARGAR_MADRE():
+    """Muestra la sección para subir datos al CRM"""
+    st.markdown("### 📤 Subir a CRM (TOTAL)")
+    
+    try:
+        # Obtener bases no subidas (donde Subida != "SI")
+        sheet = CARGAR_MADRE.CLIENT.open_by_key(CARGAR_MADRE.BASE_MADRE_ID).worksheet("Base_Madre")
+        df = get_as_dataframe(sheet).fillna("")
+        bases_disponibles = df[df["Subida"].str.upper() != "Si"]["Base"].unique().tolist()
+        
+        if bases_disponibles:
+            base_seleccionada = st.selectbox(
+                "Seleccionar base para subir al CRM:",
+                options=bases_disponibles
+            )
+            
+            if st.button("🔼 Subir a TOTAL"):
+                with st.spinner(f"Subiendo {base_seleccionada} al CRM..."):
+                    success, mensaje = CARGAR_MADRE.subir_base_a_total(base_seleccionada)
+                    
+                    if success:
+                        st.success(mensaje)
+                    else:
+                        st.error(mensaje)
+        else:
+            st.info("No hay bases pendientes por subir al CRM")
+            
+    except Exception as e:
+        st.error(f"Error al subir al CRM: {str(e)}")
 
-    st.markdown("### 📤 Subir Base seleccionada a hoja TOTAL (CRM)")
-
-    bases_disponibles = subir_crm.obtener_bases_disponibles()
-    if bases_disponibles:
-        base_elegida = st.selectbox("Selecciona una base para subir a TOTAL:", bases_disponibles)
-        if st.button("🚀 Subir base al CRM (TOTAL)"):
-            with st.spinner(f"Subiendo base '{base_elegida}' a hoja TOTAL..."):
-                resultado = subir_crm.subir_base_a_total(base_elegida)
-            st.success(resultado)
-    else:
-        st.info("No hay bases pendientes por subir.")
-
-    st.caption("💡 Recuerda verificar los datos en la hoja 'Base_Madre' y 'TOTAL' después de cada ejecución.")
-
-def ejecutar_proceso_alimentar(google_ids_text, archivos_xlsx):
-    ids_limpios = [x.strip() for x in google_ids_text.splitlines() if x.strip()]
-
-    # 🔍 Mostrar previsualización
-    if archivos_xlsx:
-        st.subheader("👀 Previsualización de archivos locales (.xlsx)")
-        previews = Alimentar.cargar_archivos_locales(archivos_xlsx, preview=True)
-        for nombre, df_preview in previews:
-            st.markdown(f"**{nombre}**")
-            st.dataframe(df_preview)
-
-    # Confirmar ejecución
-    if st.button("✅ Confirmar y procesar archivos"):
-        with st.spinner("Procesando carga de bases (Alimentar)..."):
-            resultados = Alimentar.procesar_entradas(sheets_ids=ids_limpios, archivos_locales=archivos_xlsx)
-        st.success("✅ Proceso de carga (Alimentar) finalizado.")
-        st.write("### Resultado por entrada:")
-        for nombre, estado in resultados:
-            st.write(f"- **{nombre}**: {estado}")
+if __name__ == "__main__":
+    mostrar_panel()
